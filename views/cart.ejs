@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>My Cart | AgreeConnect</title>
+    <!-- Using a nice font and basic CSS for premium look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css"> <!-- Assuming global styles exist, else I'll add inline -->
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .cart-header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .cart-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+
+        .cart-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .item-info h3 {
+            margin: 0 0 5px;
+            font-size: 1.2rem;
+        }
+
+        .item-info p {
+            margin: 0;
+            color: #777;
+        }
+
+        .item-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .price {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #27ae60;
+        }
+
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .total-section {
+            text-align: right;
+            margin-top: 30px;
+        }
+
+        .total-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .btn-checkout {
+            background: #27ae60;
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-checkout:hover {
+            background: #219150;
+        }
+
+        .nav-link {
+            color: #555;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div style="margin-bottom: 20px;">
+            <a href="/buyer" class="nav-link">← Back to Dashboard</a>
+        </div>
+
+        <div class="cart-header">
+            <h1>Shopping Cart</h1>
+        </div>
+
+        <% if(msg) { %>
+            <div style="background: #e1f5fe; color: #0277bd; padding: 10px; border-radius: 6px; margin-bottom: 20px;">
+                <%= msg %>
+            </div>
+            <% } %>
+
+                <% if(!cart || !cart.items || cart.items.length===0) { %>
+                    <div style="text-align: center; padding: 50px;">
+                        <h2 style="color: #ccc;">Your cart is empty</h2>
+                        <a href="/buyer/products" class="btn-checkout" style="background: #3498db;">Browse Products</a>
+                    </div>
+                    <% } else { %>
+
+                        <div class="cart-items">
+                            <% cart.items.forEach(item=> { %>
+                                <% if(item.product) { %>
+                                    <div class="cart-card">
+                                        <div class="item-info">
+                                            <h3>
+                                                <%= item.product.name %>
+                                            </h3>
+                                            <p style="font-size: 0.9em;">
+                                                Quantity: <b>
+                                                    <%= item.quantity %>
+                                                </b>
+                                                <span style="color: #777;">x (<%= item.product.unitSize || '1 Unit' %>
+                                                        )</span>
+                                            </p>
+                                        </div>
+                                        <div class="item-actions">
+                                            <span class="price">₹<%= item.product.basePrice * item.quantity %></span>
+                                            <form action="/cart/remove/<%= item.product._id %>" method="POST"
+                                                style="margin:0;">
+                                                <button type="submit" class="btn-remove">Remove</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <% } %>
+                                        <% }) %>
+                        </div>
+
+                        <div class="total-section">
+                            <div class="total-price">Total: ₹<%= totalPrice %>
+                            </div>
+                            <form action="/cart/checkout" method="POST">
+                                <button type="submit" class="btn-checkout">Proceed to Checkout</button>
+                            </form>
+                        </div>
+
+                        <% } %>
+
+    </div>
+
+</body>
+
+</html>

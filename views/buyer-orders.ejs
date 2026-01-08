@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders - Buyer Dashboard</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <style>
+    .orders-table {
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .orders-table th {
+      background: linear-gradient(135deg, #1e88e5 0%, #42a5f5 100%);
+      color: white;
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .orders-table td {
+      padding: 15px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .orders-table tr:hover {
+      background: #f9f9f9;
+    }
+
+    .orders-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .order-id {
+      font-family: 'Courier New', monospace;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .price-cell {
+      font-weight: 700;
+      color: #1e88e5;
+      font-size: 20px;
+    }
+
+    .date-cell {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      opacity: 0.3;
+    }
+
+    .empty-state h3 {
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    .empty-state p {
+      color: #999;
+    }
+  </style>
+</head>
+
+<body class="buyer">
+
+  <div class="container">
+    <div class="sidebar">
+      <h2 class="highlight">Buyer</h2>
+      <a href="/buyer">Dashboard</a>
+      <a href="/buyer/products">Browse Products</a>
+      <a href="/buyer/bids">My Bids</a>
+      <a href="/buyer/orders" class="active">Orders</a>
+      <a href="/cart">My Cart</a>
+      <a href="/buyer/profile">Profile</a>
+      <a href="/auth/logout" style="color: #d32f2f; margin-top: 20px;">Logout</a>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <h2>My Orders</h2>
+        <span>Welcome <%= user ? user.name : 'Buyer' %></span>
+      </div>
+
+      <% if (!orders || orders.length===0) { %>
+        <div class="empty-state">
+          <div class="empty-state-icon">📦</div>
+          <h3>No Orders Yet</h3>
+          <p>Your completed orders will appear here</p>
+        </div>
+        <% } else { %>
+          <div class="table-wrapper">
+            <table class="orders-table">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Farmer</th>
+                  <th>Farmer Contact</th>
+                  <th>Final Price</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% orders.forEach(o=> { %>
+                  <tr>
+                    <td class="order-id">
+                      <%= o._id.toString().substring(0, 8) %>...
+                    </td>
+                    <td>
+                      <strong>
+                        <%= o.farmerId ? o.farmerId.name : 'Unknown' %>
+                      </strong>
+                    </td>
+                    <td>
+                      <small>
+                        <%= o.farmerId ? o.farmerId.email : '' %>
+                      </small><br>
+                      <small>
+                        <%= o.farmerId ? o.farmerId.phone : '' %>
+                      </small>
+                    </td>
+                    <td class="price-cell">₹<%= o.finalPrice || o.total || 0 %>
+                    </td>
+                    <td>
+                      <span
+                        class="badge <%= o.status==='Pending'?'warning':(o.status==='Delivered'?'success':(o.status==='Accepted'?'info':(o.status==='Delivered'?'success':'danger'))) %>">
+                        <%= o.status %>
+                      </span>
+                      <% if (o.status==='Accepted' || o.status==='Delivered' ) { %>
+                        <button onclick="openReviewModal('<%= o._id %>', '<%= o.farmerId._id %>')"
+                          style="margin-top:5px; padding: 4px 8px; font-size: 11px; background: #ff9800; color: white; border:none; border-radius: 4px; cursor: pointer;">Write
+                          Review</button>
+                        <% } %>
+                          <% if (o.farmerId) { %>
+                            <a href="/chat/start/<%= o.farmerId._id %>"
+                              style="display:inline-block; margin-top:5px; padding: 4px 8px; font-size: 11px; background: #1e88e5; color: white; border:none; border-radius: 4px; cursor: pointer; text-decoration:none;">Chat</a>
+                            <% } %>
+                    </td>
+                    <td class="date-cell">
+                      <%= o.date ? new Date(o.date).toLocaleDateString() : 'N/A' %>
+                    </td>
+                    <td>
+                      <% if (o.status !=='Cancelled' && o.status !=='Delivered' ) { %>
+                        <form action="/buyer/orders/<%= o._id %>/cancel" method="POST"
+                          onsubmit="return confirm('Cancel this order?');">
+                          <button type="submit" class="btn-danger"
+                            style="padding: 5px 10px; font-size: 12px; background:white; border:1px solid #d32f2f; color:#d32f2f;">Cancel</button>
+                        </form>
+                        <% } else { %>
+                          -
+                          <% } %>
+                    </td>
+                  </tr>
+                  <% }) %>
+              </tbody>
+            </table>
+          </div>
+          <% } %>
+    </div>
+  </div>
+
+  </div>
+  </div>
+
+  <!-- Review Modal -->
+  <div id="reviewModal"
+    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
+    <div style="background:white; width: 400px; margin: 100px auto; padding: 20px; border-radius: 12px;">
+      <h3>Write a Review</h3>
+      <form action="/buyer/reviews/add" method="POST">
+        <input type="hidden" name="orderId" id="reviewOrderId">
+        <input type="hidden" name="farmerId" id="reviewFarmerId">
+
+        <div style="margin-bottom: 15px;">
+          <label>Rating:</label>
+          <select name="rating" style="width: 100%; padding: 8px;">
+            <option value="5">⭐⭐⭐⭐⭐ (Excellent)</option>
+            <option value="4">⭐⭐⭐⭐ (Good)</option>
+            <option value="3">⭐⭐⭐ (Average)</option>
+            <option value="2">⭐⭐ (Poor)</option>
+            <option value="1">⭐ (Terrible)</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+          <label>Comment:</label>
+          <textarea name="comment" rows="4" style="width: 100%; padding: 8px;"
+            placeholder="Share your experience..."></textarea>
+        </div>
+
+        <div style="text-align: right;">
+          <button type="button" onclick="document.getElementById('reviewModal').style.display='none'"
+            style="background: #ccc; border:none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-right: 10px;">Cancel</button>
+          <button type="submit"
+            style="background: #2e7d32; color: white; border:none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openReviewModal(orderId, farmerId) {
+      document.getElementById('reviewOrderId').value = orderId;
+      document.getElementById('reviewFarmerId').value = farmerId;
+      document.getElementById('reviewModal').style.display = 'block';
+    }
+  </script>
+
+</body>
+
+</html>

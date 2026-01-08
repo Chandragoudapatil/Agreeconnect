@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Admin - Orders</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+
+<body class="admin">
+
+    <div class="container">
+        <div class="sidebar">
+            <h2 class="highlight">Admin</h2>
+            <a href="/admin">Dashboard</a>
+            <a href="/admin/users">Users</a>
+            <a href="/admin/products">Products</a>
+            <a href="/admin/orders" class="active">Orders</a>
+            <a class="logout" href="/auth/logout">Logout</a>
+        </div>
+
+        <div class="main">
+            <div class="topbar">
+                <h2>Manage Orders</h2>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Product</th>
+                            <th>Buyer</th>
+                            <th>Farmer</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (orders && orders.length> 0) { %>
+                            <% orders.forEach(o=> { %>
+                                <tr>
+                                    <td>
+                                        <%= o._id %>
+                                    </td>
+                                    <td>
+                                        <%= o.productId ? o.productId.name : 'Unknown' %>
+                                    </td>
+                                    <td>
+                                        <%= o.buyerId ? o.buyerId.name : 'Unknown' %>
+                                    </td>
+                                    <td>
+                                        <%= o.farmerId ? o.farmerId.name : 'Unknown' %>
+                                    </td>
+                                    <td>₹<%= o.finalPrice %>
+                                    </td>
+                                    <td>
+                                        <%= o.status %>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="6">No orders found.</td>
+                                        </tr>
+                                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

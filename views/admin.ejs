@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body class="admin">
+
+<div class="container">
+  <div class="sidebar">
+    <h2 class="highlight">Admin</h2>
+    <a href="/admin">Dashboard</a>
+    <a href="/admin/users">Users</a>
+    <a href="/admin/products">Products</a>
+    <a href="/admin/orders">Orders</a>
+    <a class="logout" href="/auth/logout">Logout</a>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <h2>Admin Dashboard</h2>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <h3>Total Users</h3>
+        <span class="highlight"><%= (users || []).length %></span>
+      </div>
+      <div class="card">
+        <h3>Total Products</h3>
+        <span class="highlight"><%= (products || []).length %></span>
+      </div>
+      <div class="card">
+        <h3>Total Orders</h3>
+        <span class="highlight"><%= (orders || []).length %></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

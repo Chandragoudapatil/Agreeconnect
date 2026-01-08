@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Farmer Dashboard</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .chart-container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .quick-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .quick-stat-card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      text-align: center;
+    }
+
+    .quick-stat-card h3 {
+      margin: 0 0 5px;
+      color: #555;
+    }
+
+    .quick-stat-card span {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #27ae60;
+    }
+  </style>
+</head>
+
+<body class="farmer">
+
+  <div class="container">
+    <div class="sidebar">
+      <h2 class="highlight">Farmer</h2>
+      <a href="/farmer" class="active">Dashboard</a>
+      <a href="/farmer/add-product">Add Product</a>
+      <a href="/farmer/products">My Products</a>
+      <a href="/farmer/orders">Orders</a>
+      <a href="/farmer/profile">Profile</a>
+      <a href="/auth/logout">Logout</a>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <h2>Farmer Dashboard</h2>
+        <span>Welcome <%= user ? user.name : 'Guest' %></span>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="cards">
+        <div class="stat-card">
+          <div class="stat-label">Total Products</div>
+          <div class="stat-number">
+            <%= (products || []).length %>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Active Listings</div>
+          <div class="stat-number">
+            <%= stats.activeProducts || 0 %>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Sold</div>
+          <div class="stat-number">
+            <%= stats.soldProducts || 0 %>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Revenue</div>
+          <div class="stat-number">₹<%= stats.totalSales || 0 %>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Analytics Chart -->
+        <div class="chart-container">
+          <h3>Business Overview</h3>
+          <canvas id="salesChart"></canvas>
+        </div>
+
+        <!-- Order Summary (Simple Pie) -->
+        <div class="chart-container">
+          <h3>Product Status</h3>
+          <canvas id="statusChart"></canvas>
+        </div>
+      </div>
+
+      <div class="table-container" style="margin-top: 30px;">
+        <h3>Your Products</h3>
+        <table>
+          <tr>
+            <th>Product</th>
+            <th>Price</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+          <% (products || []).slice(0, 5).forEach(p=> { %>
+            <tr>
+              <td>
+                <%= p.name %>
+              </td>
+              <td>₹<%= p.price || p.basePrice || 0 %>
+              </td>
+              <td>
+                <span class="badge <%= p.status === 'OPEN' ? 'success' : 'danger' %>">
+                  <%= p.status || 'N/A' %>
+                </span>
+              </td>
+              <td>
+                <a href="/farmer/products" style="color: #1e88e5;">Manage</a>
+              </td>
+            </tr>
+            <% }) %>
+        </table>
+        <% if(products && products.length> 5) { %>
+          <div style="text-align: center; margin-top: 10px;">
+            <a href="/farmer/products">View All</a>
+          </div>
+          <% } %>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Sales Bar Chart
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Revenue (₹)', 'Orders'],
+        datasets: [{
+          label: 'Performance',
+          data: [<%= stats.totalSales %>, <%= stats.totalOrders %>],
+          backgroundColor: ['#27ae60', '#2980b9']
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } }
+      }
+    });
+
+    // Status Pie Chart
+    const ctx2 = document.getElementById('statusChart').getContext('2d');
+    new Chart(ctx2, {
+      type: 'doughnut',
+      data: {
+        labels: ['Active', 'Sold'],
+        datasets: [{
+          data: [<%= stats.activeProducts %>, <%= stats.soldProducts %>],
+          backgroundColor: ['#f39c12', '#95a5a6']
+        }]
+      }
+    });
+  </script>
+
+</body>
+
+</html>

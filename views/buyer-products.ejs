@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Browse Products</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+  <style>
+    /* Add some specific styles for new features */
+    .timer {
+      font-weight: bold;
+      color: #e67e22;
+      margin-bottom: 10px;
+    }
+
+    .watchlist-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 10;
+    }
+
+    .product-card {
+      position: relative;
+      /* for watchlist btn */
+    }
+
+    .action-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .btn-cart {
+      background: #27ae60;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .btn-bid {
+      background: #1e88e5;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      flex: 1;
+    }
+  </style>
+</head>
+
+<body class="buyer">
+
+  <div class="container">
+    <div class="sidebar">
+      <h2 class="highlight">Buyer</h2>
+      <a href="/buyer">Dashboard</a>
+      <a href="/buyer/products" class="active">Browse Products</a>
+      <a href="/buyer/bids">My Bids</a>
+      <a href="/buyer/orders">Orders</a>
+      <a href="/cart">My Cart</a> <!-- Added Link -->
+      <a href="/buyer/profile">Profile</a>
+      <a class="logout" href="/auth/logout">Logout</a>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <h2>Browse Products</h2>
+        <span>
+          <%= products.length %> products available
+        </span>
+      </div>
+
+      <!-- Search & Filter Section -->
+      <div
+        style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+        <form action="/buyer/products" method="GET" style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <input type="text" name="search" placeholder="Search Product..."
+            value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>" style="flex: 2; min-width: 200px;">
+          <input type="text" name="location" placeholder="City/Location"
+            value="<%= typeof locationQuery !== 'undefined' ? locationQuery : '' %>" style="flex: 1; min-width: 150px;">
+          <input type="number" name="minPrice" placeholder="Min ₹" style="width: 100px;">
+          <input type="number" name="maxPrice" placeholder="Max ₹" style="width: 100px;">
+          <button type="submit" style="background: #1e88e5; color: white;">Search</button>
+          <a href="/buyer/products"
+            style="padding: 10px; color: #666; text-decoration: underline; display: flex; align-items: center;">Clear</a>
+        </form>
+      </div>
+
+      <% if (msg) { %>
+        <div style="background: #e3f2fd; color: #0d47a1; padding: 10px; margin-bottom: 20px; border-radius: 5px;">
+          <%= msg %>
+        </div>
+        <% } %>
+
+          <div class="product-grid">
+            <% if (products && products.length> 0) { %>
+              <% products.forEach(p=> { %>
+                <div class="product-card" id="product-<%= p._id %>">
+                  <!-- Watchlist Toggle -->
+                  <button class="watchlist-btn" onclick="toggleWatchlist('<%= p._id %>', this)">
+                    <%= (user && user.watchlist && user.watchlist.includes(p._id.toString())) ? '❤️' : '🤍' %>
+                  </button>
+
+                  <h3>
+                    <%= p.name %>
+                  </h3>
+                  <p style="color: #666; margin: 5px 0 5px;">
+                    <%= p.description || 'No description available' %>
+                  </p>
+
+                  <% if (p.farmerId && p.farmerId.location) { %>
+                    <p style="color: #555; font-size: 0.9em; margin-bottom: 10px;">
+                      📍 <%= p.farmerId.location %>
+                    </p>
+                    <% } %>
+
+                      <% /* Show Rating ONLY for Fixed Products (as requested) */ if (p.listingType==='FIXED' &&
+                        p.farmerId && typeof ratingsMap !=='undefined' && ratingsMap[p.farmerId._id]) { const
+                        rating=ratingsMap[p.farmerId._id]; %>
+                        <div style="font-size: 0.9em; margin-bottom: 10px; color: #ff9800;">
+                          ⭐ <b>
+                            <%= rating.average %>
+                          </b> <span style="color:#777;">(<%= rating.count %> reviews)</span>
+                        </div>
+                        <% } %>
+
+                          <!-- Pricing Info -->
+                          <div
+                            style="display:flex; justify-content:space-between; margin-bottom:5px; align-items: center;">
+                            <span style="font-weight: bold; font-size: 1.1em;">₹<%= p.basePrice %> <small
+                                  style="color:#777; font-weight:normal;">/ <%= p.unitSize || 'unit' %></small></span>
+
+                            <% if(p.listingType !=='FIXED' ) { %>
+                              <span class="current-bid-display" style="color:#1e88e5; font-weight:bold;">Current: ₹<%=
+                                  p.currentBid || p.basePrice %></span>
+                              <% } else { %>
+                                <span style="font-size: 0.9em;"
+                                  class="<%= (p.quantity > 5) ? 'text-success' : 'text-danger' %>">
+                                  Stock: <%= p.quantity %>
+                                </span>
+                                <% } %>
+                          </div>
+
+                          <!-- Timer (Only for Auctions) -->
+                          <% if(p.listingType !=='FIXED' ) { %>
+                            <div class="timer" data-endtime="<%= p.biddingEndTime %>">Loading timer...</div>
+                            <% } else { %>
+                              <div style="color: #27ae60; font-weight: bold; margin-bottom: 10px;">Fixed Price</div>
+                              <% } %>
+
+                                <!-- Actions -->
+                                <div class="action-row">
+                                  <% if(p.listingType !=='FIXED' ) { %>
+                                    <!-- Bid Form -->
+                                    <form action="/buyer/bid/<%= p._id %>" method="POST"
+                                      style="flex: 2; display:flex; gap:5px;">
+                                      <input type="number" name="bidAmount" placeholder="Bid" class="bid-input"
+                                        min="<%= (p.currentBid || p.basePrice) + 1 %>" required
+                                        style="width: 100%; padding:8px; border:1px solid #ddd; border-radius:5px;">
+                                      <button type="submit" class="btn-bid">Bid</button>
+                                    </form>
+                                    <% } else { %>
+                                      <!-- Buy Now (Full width cart button) -->
+                                      <% if(p.quantity> 0) { %>
+                                        <form action="/cart/add/<%= p._id %>" method="POST"
+                                          style="flex: 1; display: flex; gap: 5px;">
+                                          <input type="number" name="quantity" value="1" min="1" max="<%= p.quantity %>"
+                                            style="width: 60px; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                                          <button type="submit" class="btn-cart"
+                                            style="width: 100%; background: #27ae60;">
+                                            Add to Cart
+                                          </button>
+                                        </form>
+                                        <% } else { %>
+                                          <button disabled
+                                            style="flex: 1; background: #ccc; border:none; padding: 8px; border-radius: 5px; cursor: not-allowed; color: #666;">
+                                            Out of Stock
+                                          </button>
+                                          <% } %>
+                                            <% } %>
+
+                                              <!-- Add to Cart (for auction, maybe optional? kept it previous, but user wanted sell without bidding option) -->
+                                              <!-- If it is AUCTION, we typically don't allow "Add to Cart" at base price unless there is a 'Buy It Now' price. 
+                           For now, let's keep Add to Cart for FIXED only to avoid confusion, or assume Add to Cart on Auction means 'Watch' or similar? 
+                           The previous code had BOTH. "Sell without bidding" implies Fixed Price. 
+                           So for Fixed Price -> Show Cart. For Auction -> Show Bid. -->
+                                </div>
+                </div>
+                <% }) %>
+                  <% } else { %>
+                    <p>No products available for bidding right now.</p>
+                    <% } %>
+          </div>
+    </div>
+  </div>
+
+  <script>
+    const socket = io();
+
+    // Listen for live bid updates
+    socket.on('bid_update', (data) => {
+      const card = document.getElementById('product-' + data.productId);
+      if (card) {
+        // Update Current Bid text
+        const display = card.querySelector('.current-bid-display');
+        if (display) display.innerText = 'Current: ₹' + data.newBid;
+
+        // Update Minimum Bid amount in input
+        const input = card.querySelector('.bid-input');
+        if (input) {
+          const nextMin = parseFloat(data.newBid) + 1;
+          input.min = nextMin;
+          // visual feedback ?
+          display.style.backgroundColor = '#ffffcc';
+          setTimeout(() => display.style.backgroundColor = 'transparent', 1000);
+        }
+      }
+    });
+
+    // Watchlist Toggle
+    async function toggleWatchlist(productId, btn) {
+      try {
+        const response = await fetch('/buyer/watchlist/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId })
+        });
+        const data = await response.json();
+        if (data.success) {
+          // Update icon
+          const isWatching = data.watchlist.includes(productId);
+          btn.innerText = isWatching ? '❤️' : '🤍';
+        }
+      } catch (e) {
+        console.error('Watchlist Error', e);
+      }
+    }
+
+    // Timer Logic
+    setInterval(() => {
+      document.querySelectorAll('.timer').forEach(el => {
+        const endStr = el.dataset.endtime;
+        if (!endStr || endStr === 'undefined') {
+          el.innerText = 'No Time Limit';
+          el.style.color = '#777';
+          return;
+        }
+
+        const endTime = moment(endStr);
+        const now = moment();
+        const duration = moment.duration(endTime.diff(now));
+
+        if (duration.asSeconds() <= 0) {
+          el.innerText = 'Bidding Closed';
+          el.style.color = 'red';
+          // Disable Bid Button
+          const form = el.parentElement.querySelector('form[action^="/buyer/bid"]');
+          if (form) {
+            const btn = form.querySelector('button');
+            const input = form.querySelector('input');
+            if (btn) { btn.disabled = true; btn.style.background = '#ccc'; }
+            if (input) input.disabled = true;
+          }
+        } else {
+          // Format: 1d 2h 30m 45s
+          const d = Math.floor(duration.asDays());
+          const h = duration.hours();
+          const m = duration.minutes();
+          const s = duration.seconds();
+          let timeString = '';
+          if (d > 0) timeString += d + 'd ';
+          timeString += h + 'h ' + m + 'm ' + s + 's';
+
+          el.innerText = 'Ends in: ' + timeString;
+        }
+      });
+    }, 1000);
+  </script>
+
+</body>
+
+</html>

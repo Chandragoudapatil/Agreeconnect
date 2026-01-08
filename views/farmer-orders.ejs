@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders - Farmer Dashboard</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <style>
+    .orders-table {
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .orders-table th {
+      background: linear-gradient(135deg, #2e7d32 0%, #4caf50 100%);
+      color: white;
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .orders-table td {
+      padding: 15px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .orders-table tr:hover {
+      background: #f9f9f9;
+    }
+
+    .orders-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .order-id {
+      font-family: 'Courier New', monospace;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .price-cell {
+      font-weight: 700;
+      color: #2e7d32;
+      font-size: 18px;
+    }
+
+    .date-cell {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      opacity: 0.3;
+    }
+
+    .empty-state h3 {
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    .empty-state p {
+      color: #999;
+    }
+  </style>
+</head>
+
+<body class="farmer">
+
+  <div class="container">
+    <div class="sidebar">
+      <h2 class="highlight">Farmer</h2>
+      <a href="/farmer">Dashboard</a>
+      <a href="/farmer/add-product">Add Product</a>
+      <a href="/farmer/products">My Products</a>
+      <a href="/farmer/orders" style="background: #e8f5e9; color: #2e7d32; font-weight: 600;">Orders</a>
+      <a href="/farmer/profile">Profile</a>
+      <a href="/auth/logout" style="color: #d32f2f; margin-top: 20px;">Logout</a>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <h2>Orders</h2>
+        <span>Welcome <%= user ? user.name : 'Farmer' %></span>
+      </div>
+
+      <% if (!orders || orders.length===0) { %>
+        <div class="empty-state">
+          <div class="empty-state-icon">📋</div>
+          <h3>No Orders Yet</h3>
+          <p>Orders from buyers will appear here</p>
+        </div>
+        <% } else { %>
+          <table class="orders-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Buyer</th>
+                <th>Buyer Contact</th>
+                <th>Final Price</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% orders.forEach(o=> { %>
+                <tr>
+                  <td class="order-id">
+                    <%= o._id.toString().substring(0, 8) %>...
+                  </td>
+                  <td>
+                    <strong>
+                      <%= o.buyerId ? o.buyerId.name : 'Unknown' %>
+                    </strong>
+                  </td>
+                  <td>
+                    <small>
+                      <%= o.buyerId ? o.buyerId.email : '' %>
+                    </small><br>
+                    <small>
+                      <%= o.buyerId ? o.buyerId.phone : '' %>
+                    </small>
+                  </td>
+                  <td class="price-cell">₹<%= o.finalPrice || o.total || 0 %>
+                  </td>
+                  <td>
+                    <span
+                      class="badge <%= o.status==='Pending'?'warning':(o.status==='Delivered'?'success':'danger') %>">
+                      <%= o.status %>
+                    </span>
+                    <% if (o.buyerId) { %>
+                      <br>
+                      <a href="/chat/start/<%= o.buyerId._id %>"
+                        style="display:inline-block; margin-top:5px; padding: 4px 8px; font-size: 11px; background: #1e88e5; color: white; border:none; border-radius: 4px; cursor: pointer; text-decoration:none;">Chat
+                        with Buyer</a>
+                      <% } %>
+                  </td>
+                  <td class="date-cell">
+                    <%= o.date ? new Date(o.date).toLocaleDateString() : 'N/A' %>
+                  </td>
+                  <td>
+                    <% if (o.status !=='Cancelled' && o.status !=='Delivered' ) { %>
+                      <div style="display: flex; gap: 5px;">
+                        <% if (o.status==='Pending' ) { %>
+                          <form action="/farmer/orders/<%= o._id %>/accept" method="POST">
+                            <button type="submit" class="btn-primary"
+                              style="padding: 5px 10px; font-size: 12px; background: #2e7d32; color: white; border: none; border-radius: 4px; cursor: pointer;">Accept</button>
+                          </form>
+                          <% } %>
+                            <form action="/farmer/orders/<%= o._id %>/cancel" method="POST"
+                              onsubmit="return confirm('Cancel this order?');">
+                              <button type="submit" class="btn-danger"
+                                style="padding: 5px 10px; font-size: 12px;">Cancel</button>
+                            </form>
+                      </div>
+                      <% } else { %>
+                        -
+                        <% } %>
+                  </td>
+                </tr>
+                <% }) %>
+            </tbody>
+          </table>
+          <% } %>
+    </div>
+  </div>
+
+</body>
+
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chat with <%= otherUser ? otherUser.name : 'User' %>
+    </title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 70vh;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 20px;
+            background: #f4f4f4;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message.sent {
+            align-self: flex-end;
+            background: #1e88e5;
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .message.received {
+            align-self: flex-start;
+            background: #f1f1f1;
+            color: #333;
+            border-bottom-left-radius: 2px;
+        }
+
+        .chat-input {
+            padding: 20px;
+            border-top: 1px solid #ddd;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+        }
+
+        .chat-input button {
+            padding: 10px 20px;
+            background: #1e88e5;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2 class="highlight">AgreeConnect</h2>
+            <a href="<%= user.role === 'farmer' ? '/farmer' : '/buyer' %>">Dashboard</a>
+            <a href="/chat" class="active">Back to Messages</a>
+        </div>
+
+        <div class="main">
+            <div class="chat-container">
+                <div class="chat-header">
+                    Chatting with <%= otherUser ? otherUser.name : 'Unknown' %>
+                </div>
+
+                <div class="chat-messages" id="messagesList">
+                    <% chat.messages.forEach(msg=> { %>
+                        <div
+                            class="message <%= msg.sender._id.toString() === user._id.toString() ? 'sent' : 'received' %>">
+                            <%= msg.text %>
+                        </div>
+                        <% }) %>
+                </div>
+
+                <div class="chat-input">
+                    <input type="text" id="messageInput" placeholder="Type a message...">
+                    <button onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        const chatId = '<%= chat._id %>';
+        const myId = '<%= user._id %>';
+
+        // Join Room
+        socket.emit('join_chat', chatId);
+
+        // Receive Message
+        socket.on('receive_message', (msg) => {
+            const div = document.createElement('div');
+            div.className = `message ${msg.sender === myId ? 'sent' : 'received'}`;
+            div.textContent = msg.text;
+            document.getElementById('messagesList').appendChild(div);
+            scrollToBottom();
+        });
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (text) {
+                socket.emit('send_message', { chatId, senderId: myId, text });
+                input.value = '';
+            }
+        }
+
+        // Enter key to send
+        document.getElementById('messageInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function scrollToBottom() {
+            const list = document.getElementById('messagesList');
+            list.scrollTop = list.scrollHeight;
+        }
+
+        // Initial scroll
+        scrollToBottom();
+    </script>
+</body>
+
+</html>

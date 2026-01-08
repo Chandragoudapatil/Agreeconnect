@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Bids - Buyer Dashboard</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <style>
+    .bids-table {
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .bids-table th {
+      background: linear-gradient(135deg, #1e88e5 0%, #42a5f5 100%);
+      color: white;
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .bids-table td {
+      padding: 15px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .bids-table tr:hover {
+      background: #f9f9f9;
+    }
+
+    .bids-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .product-id {
+      font-family: 'Courier New', monospace;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .bid-amount {
+      font-weight: 700;
+      color: #1e88e5;
+      font-size: 20px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      opacity: 0.3;
+    }
+
+    .empty-state h3 {
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    .empty-state p {
+      color: #999;
+      margin-bottom: 20px;
+    }
+
+    .btn-browse {
+      display: inline-block;
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #1e88e5 0%, #42a5f5 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: transform 0.2s;
+    }
+
+    .btn-browse:hover {
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body class="buyer">
+
+  <div class="container">
+    <div class="sidebar">
+      <h2 class="highlight">Buyer</h2>
+      <a href="/buyer">Dashboard</a>
+      <a href="/buyer/products">Browse Products</a>
+      <a href="/buyer/bids" class="active">My Bids</a>
+      <a href="/buyer/orders">Orders</a>
+      <a href="/cart">My Cart</a>
+      <a href="/buyer/profile">Profile</a>
+      <a href="/auth/logout" style="color: #d32f2f; margin-top: 20px;">Logout</a>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <h2>My Bids</h2>
+        <span>Welcome <%= user ? user.name : 'Buyer' %></span>
+      </div>
+
+      <% if (typeof msg !=='undefined' && msg) { %>
+        <div style="background-color: #e3f2fd; color: #0d47a1; padding: 10px; margin-bottom: 20px; border-radius: 5px;">
+          <%= msg %>
+        </div>
+        <% } %>
+
+          <% if (!bids || bids.length===0) { %>
+            <div class="empty-state">
+              <div class="empty-state-icon">💰</div>
+              <h3>No Bids Yet</h3>
+              <p>Start bidding on products to see them here</p>
+              <a href="/buyer/products" class="btn-browse">Browse Products</a>
+            </div>
+            <% } else { %>
+              <table class="bids-table">
+                <thead>
+                  <tr>
+                    <th>Product Name</th>
+                    <th>Product ID</th>
+                    <th>Bid Amount</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% bids.forEach(b=> { %>
+                    <tr>
+                      <td>
+                        <strong>
+                          <%= b.productId ? b.productId.name : 'Unknown Product' %>
+                        </strong>
+                      </td>
+                      <td class="product-id">
+                        <%= b.productId ? b.productId._id.toString().substring(0, 8) : 'N/A' %>...
+                      </td>
+                      <td class="bid-amount">₹<%= b.amount || 0 %>
+                      </td>
+                      <td>
+                        <form action="/buyer/bids/<%= b._id %>/cancel" method="POST"
+                          onsubmit="return confirm('Undo this bid?');">
+                          <button type="submit"
+                            style="background:transparent; color:#d32f2f; border:1px solid #d32f2f; padding:5px 10px; border-radius:5px; cursor:pointer;">Undo
+                            Bid</button>
+                        </form>
+                      </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+              </table>
+              <% } %>
+    </div>
+  </div>
+
+</body>
+
+</html>

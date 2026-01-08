@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Admin - Users</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+
+<body class="admin">
+
+    <div class="container">
+        <div class="sidebar">
+            <h2 class="highlight">Admin</h2>
+            <a href="/admin">Dashboard</a>
+            <a href="/admin/users" class="active">Users</a>
+            <a href="/admin/products">Products</a>
+            <a href="/admin/orders">Orders</a>
+            <a class="logout" href="/auth/logout">Logout</a>
+        </div>
+
+        <div class="main">
+            <div class="topbar">
+                <h2>Manage Users</h2>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (users && users.length> 0) { %>
+                            <% users.forEach(u=> { %>
+                                <tr>
+                                    <td>
+                                        <%= u.name %>
+                                    </td>
+                                    <td>
+                                        <%= u.email %>
+                                    </td>
+                                    <td>
+                                        <%= u.role %>
+                                    </td>
+                                    <td>
+                                        <form action="/admin/users/delete/<%= u._id %>" method="POST"
+                                            onsubmit="return confirm('Are you sure?');">
+                                            <button class="btn-danger">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="3">No users found.</td>
+                                        </tr>
+                                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

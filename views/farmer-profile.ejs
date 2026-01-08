@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Farmer Profile</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+
+<body class="farmer">
+    <div class="container">
+        <div class="sidebar">
+            <h2 class="highlight">Farmer</h2>
+            <a href="/farmer">Dashboard</a>
+            <a href="/farmer/add-product">Add Product</a>
+            <a href="/farmer/products">My Products</a>
+            <a href="/farmer/orders">Orders</a>
+            <a href="/farmer/profile" class="active">Profile</a>
+            <a href="/auth/logout">Logout</a>
+        </div>
+        <div class="main">
+            <div class="topbar">
+                <h2>My Profile</h2>
+            </div>
+            <% if (typeof msg !=='undefined' && msg) { %>
+                <div
+                    style="background: #e3f2fd; color: #0d47a1; padding: 10px; margin-bottom: 20px; border-radius: 5px;">
+                    <%= msg %>
+                </div>
+                <% } %>
+                    <div class="card" style="max-width: 500px">
+                        <h3>Edit Profile</h3>
+                        <form action="/farmer/profile" method="POST" style="margin-top: 20px;">
+                            <div style="margin-bottom: 15px;">
+                                <label style="display:block; margin-bottom:5px;">Name</label>
+                                <input type="text" name="name" value="<%= user.name %>" required
+                                    style="width:100%; padding: 10px; border:1px solid #ddd; border-radius:5px;">
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <label style="display:block; margin-bottom:5px;">Email</label>
+                                <input type="email" name="email" value="<%= user.email %>" required
+                                    style="width:100%; padding: 10px; border:1px solid #ddd; border-radius:5px;">
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <label style="display:block; margin-bottom:5px;">City / Location</label>
+                                <input type="text" name="location" value="<%= user.location || '' %>"
+                                    placeholder="e.g. Nashik, Pune"
+                                    style="width:100%; padding: 10px; border:1px solid #ddd; border-radius:5px;">
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <label style="display:block; margin-bottom:5px;">Contact Number</label>
+                                <input type="text" name="phone" value="<%= user.phone || '' %>"
+                                    placeholder="Enter contact number" pattern="[0-9]{10}"
+                                    title="Please enter a valid 10-digit number"
+                                    style="width:100%; padding: 10px; border:1px solid #ddd; border-radius:5px;">
+                            </div>
+                            <button type="submit" style="background:#27ae60; color:white; font-size:16px;">Save
+                                Changes</button>
+                        </form>
+                    </div>
+        </div>
+    </div>
+</body>
+
+</html>

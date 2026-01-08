@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Product - Farmer Dashboard</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <style>
+    .form-container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #2e7d32;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #2e7d32 0%, #4caf50 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(46, 125, 50, 0.3);
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #2e7d32;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .form-help {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+
+<body class="farmer">
+
+  <div class="container">
+    <div class="sidebar">
+      <h2 class="highlight">Farmer</h2>
+      <a href="/farmer">Dashboard</a>
+      <a href="/farmer/add-product" style="background: #e8f5e9; color: #2e7d32; font-weight: 600;">Add Product</a>
+      <a href="/farmer/products">My Products</a>
+      <a href="/farmer/orders">Orders</a>
+      <a href="/farmer/profile">Profile</a>
+      <a href="/auth/logout" style="color: #d32f2f; margin-top: 20px;">Logout</a>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <h2>Add New Product</h2>
+        <span>Welcome <%= user ? user.name : 'Farmer' %></span>
+      </div>
+
+      <div class="form-container">
+        <h1 class="page-title">Add Product</h1>
+
+        <form action="/farmer/add-product" method="POST">
+          <div class="form-group">
+            <label for="name">Product Name *</label>
+            <input type="text" id="name" name="name" placeholder="e.g., Organic Tomatoes" required>
+            <div class="form-help">Enter a clear, descriptive name for your product</div>
+          </div>
+
+          <div class="form-group">
+            <label for="quantity">Quantity *</label>
+            <input type="number" id="quantity" name="quantity" placeholder="e.g., 100" min="1" required>
+            <div class="form-help">Enter the total quantity available (in kg, units, etc.)</div>
+          </div>
+
+          <div class="form-group">
+            <label for="price">Base Price / Selling Price (₹) *</label>
+            <input type="number" id="price" name="price" placeholder="e.g., 50" min="0" step="0.01" required>
+            <div class="form-help">Starting price for auction OR fixed selling price</div>
+          </div>
+
+          <div class="form-group">
+            <label for="listingType">Listing Type *</label>
+            <select id="listingType" name="listingType"
+              style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px;">
+              <option value="AUCTION">Auction (Bidding)</option>
+              <option value="FIXED">Fixed Price (Sell Now)</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="unitSizeGroup" style="display: none;">
+            <label for="unitSize">Unit Size (for Fixed Price)</label>
+            <input type="text" id="unitSize" name="unitSize" placeholder="e.g., 5kg Pack, 1 Dozen, 100g">
+            <div class="form-help">What is the size of one unit?</div>
+          </div>
+
+          <div class="form-group" id="durationGroup">
+            <label for="duration">Auction Duration (Hours) *</label>
+            <input type="number" id="duration" name="duration" placeholder="e.g., 24" value="24" min="1">
+            <div class="form-help">How long should the bidding remain open?</div>
+          </div>
+
+          <script>
+            const typeSelect = document.getElementById('listingType');
+            const durationGroup = document.getElementById('durationGroup');
+            const unitSizeGroup = document.getElementById('unitSizeGroup');
+            typeSelect.addEventListener('change', () => {
+              if (typeSelect.value === 'FIXED') {
+                durationGroup.style.display = 'none';
+                unitSizeGroup.style.display = 'block';
+              } else {
+                durationGroup.style.display = 'block';
+                unitSizeGroup.style.display = 'none';
+              }
+            });
+          </script>
+
+          <button type="submit" class="btn-submit">Add Product</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>
